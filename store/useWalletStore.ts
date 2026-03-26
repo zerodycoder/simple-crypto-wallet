@@ -1,29 +1,52 @@
 import { create } from "zustand";
-import { IWallet, ITransaction, NetworkType, IWalletStore } from "@/types/wallet";
+import { persist } from "zustand/middleware";
+import { IWallet, ITransaction, NetworkType, IWalletStore, ISettings } from "@/types/wallet";
 
-export const useWalletStore = create<IWalletStore>((set) => ({
-  wallet: null,
-  network: "sepolia",
-  isLocked: true,
-  transactions: [],
+const DEFAULT_SETTINGS: ISettings = {
+  lockTimeout: 5,
+  defaultNetwork: "sepolia",
+};
 
-  setWallet: (wallet: IWallet) =>
-    set({ wallet, isLocked: false }),
+export const useWalletStore = create<IWalletStore>()(
+  persist(
+    (set) => ({
+      wallet: null,
+      network: "sepolia",
+      isLocked: true,
+      transactions: [],
+      settings: DEFAULT_SETTINGS,
 
-  setNetwork: (network: NetworkType) =>
-    set({ network }),
+      setWallet: (wallet: IWallet) =>
+        set({ wallet, isLocked: false }),
 
-  lock: () =>
-    set({ isLocked: true }),
+      setNetwork: (network: NetworkType) =>
+        set({ network }),
 
-  unlock: () =>
-    set({ isLocked: false }),
+      lock: () =>
+        set({ isLocked: true }),
 
-  addTransaction: (tx: ITransaction) =>
-    set((state) => ({
-      transactions: [tx, ...state.transactions],
-    })),
+      unlock: () =>
+        set({ isLocked: false }),
 
-  clearWallet: () =>
-    set({ wallet: null, isLocked: true, transactions: [] }),
-}));
+      addTransaction: (tx: ITransaction) =>
+        set((state) => ({
+          transactions: [tx, ...state.transactions],
+        })),
+
+      clearWallet: () =>
+        set({ wallet: null, isLocked: true, transactions: [] }),
+
+      updateSettings: (partial: Partial<ISettings>) =>
+        set((state) => ({
+          settings: { ...state.settings, ...partial },
+        })),
+    }),
+    {
+      name: "scw_store",
+      partialize: (state) => ({
+        settings: state.settings,
+        network: state.network,
+      }),
+    }
+  )
+);

@@ -23,6 +23,7 @@ describe("useWalletStore", () => {
       network: "sepolia",
       isLocked: true,
       transactions: [],
+      settings: { lockTimeout: 5, defaultNetwork: "sepolia" },
     });
   });
 
@@ -74,6 +75,20 @@ describe("useWalletStore", () => {
     act(() => result.current.addTransaction(tx1));
     act(() => result.current.addTransaction(tx2));
     expect(result.current.transactions[0].hash).toBe("0xsecond");
+  });
+
+  it("updateSettings merges partial settings", () => {
+    const { result } = renderHook(() => useWalletStore());
+    act(() => result.current.updateSettings({ lockTimeout: 30 }));
+    expect(result.current.settings.lockTimeout).toBe(30);
+    expect(result.current.settings.defaultNetwork).toBe("sepolia");
+  });
+
+  it("updateSettings can change defaultNetwork", () => {
+    const { result } = renderHook(() => useWalletStore());
+    act(() => result.current.updateSettings({ defaultNetwork: "mainnet" }));
+    expect(result.current.settings.defaultNetwork).toBe("mainnet");
+    expect(result.current.settings.lockTimeout).toBe(5);
   });
 
   it("clearWallet resets state", () => {
