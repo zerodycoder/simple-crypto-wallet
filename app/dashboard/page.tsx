@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { useWalletStore } from "@/store/useWalletStore";
 import { useBalance } from "@/hooks/useBalance";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
+import { useEthPrice } from "@/hooks/useEthPrice";
 import { loadWalletFromStorage } from "@/lib/crypto";
 import { shortenAddress } from "@/lib/wallet";
 import { NetworkSwitcher } from "@/components/wallet/NetworkSwitcher";
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const { wallet, network, setWallet, lock } = useWalletStore();
   const { balance, isLoading: balanceLoading, refetch: refetchBalance } = useBalance(wallet?.address ?? null, network);
   const { transactions, isLoading: txLoading, refetch: refetchTx } = useTransactionHistory(wallet?.address ?? null, network);
+  const { toUsd } = useEthPrice();
 
   function refetch() {
     refetchBalance();
@@ -100,14 +102,21 @@ export default function DashboardPage() {
           </button>
 
           {/* Balance */}
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-bold tracking-tight">
-              {balanceLoading ? "..." : balance}
-            </span>
-            <span className="text-muted-foreground text-lg mb-0.5">ETH</span>
-            <button onClick={refetch} className="mb-1 ml-1 text-muted-foreground hover:text-foreground">
-              <RefreshCw className={`w-3.5 h-3.5 ${balanceLoading || txLoading ? "animate-spin" : ""}`} />
-            </button>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-end gap-2">
+              <span className="text-4xl font-bold tracking-tight">
+                {balanceLoading ? "..." : balance}
+              </span>
+              <span className="text-muted-foreground text-lg mb-0.5">ETH</span>
+              <button onClick={refetch} className="mb-1 ml-1 text-muted-foreground hover:text-foreground">
+                <RefreshCw className={`w-3.5 h-3.5 ${balanceLoading || txLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+            {toUsd(balance) && (
+              <span className="text-sm text-muted-foreground">
+                ≈ {toUsd(balance)}
+              </span>
+            )}
           </div>
 
           {/* Network badge */}
