@@ -63,6 +63,18 @@ jest.mock("@/lib/crypto", () => ({
   }),
 }));
 
+jest.mock("@/hooks/useAutoLock", () => ({
+  useAutoLock: jest.fn(),
+}));
+
+jest.mock("@/hooks/useEthPrice", () => ({
+  useEthPrice: () => ({ price: null, isLoading: false, toUsd: () => null }),
+}));
+
+jest.mock("@/components/wallet/NetworkSwitcher", () => ({
+  NetworkSwitcher: () => <div data-testid="network-switcher" />,
+}));
+
 describe("DashboardPage", () => {
   beforeEach(() => {
     mockPush.mockClear();
@@ -122,6 +134,13 @@ describe("DashboardPage", () => {
   it("shows received transaction with positive amount", () => {
     render(<DashboardPage />);
     expect(screen.getByText("+0.050000 ETH")).toBeInTheDocument();
+  });
+
+  it("navigates to /settings on Settings click", async () => {
+    render(<DashboardPage />);
+    const settingsButton = screen.getByRole("button", { name: "Settings" });
+    await userEvent.click(settingsButton);
+    expect(mockPush).toHaveBeenCalledWith("/settings");
   });
 
   it("locks wallet and redirects to home on lock click", async () => {

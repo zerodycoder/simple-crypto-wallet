@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Send, Download, Copy, RefreshCw, Lock,
+  Send, Download, Copy, RefreshCw, Lock, Settings,
   ExternalLink, CheckCircle, Clock, XCircle, Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { useWalletStore } from "@/store/useWalletStore";
 import { useBalance } from "@/hooks/useBalance";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useEthPrice } from "@/hooks/useEthPrice";
+import { useAutoLock } from "@/hooks/useAutoLock";
 import { loadWalletFromStorage } from "@/lib/crypto";
 import { shortenAddress } from "@/lib/wallet";
 import { NetworkSwitcher } from "@/components/wallet/NetworkSwitcher";
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const { balance, isLoading: balanceLoading, refetch: refetchBalance } = useBalance(wallet?.address ?? null, network);
   const { transactions, isLoading: txLoading, refetch: refetchTx } = useTransactionHistory(wallet?.address ?? null, network);
   const { toUsd } = useEthPrice();
+  useAutoLock();
 
   function refetch() {
     refetchBalance();
@@ -72,6 +74,15 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <NetworkSwitcher />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/settings")}
+            aria-label="Settings"
+            className="w-8 h-8 text-muted-foreground hover:text-foreground"
+          >
+            <Settings className="w-4 h-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
