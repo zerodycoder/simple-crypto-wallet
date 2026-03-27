@@ -31,6 +31,13 @@ jest.mock("@/hooks/useTransaction", () => ({
   }),
 }));
 
+jest.mock("@/hooks/useEthPrice", () => ({
+  useEthPrice: () => ({
+    price: 3000,
+    toUsd: (eth: string) => `$${(parseFloat(eth) * 3000).toFixed(2)}`,
+  }),
+}));
+
 describe("SendPage", () => {
   beforeEach(() => {
     mockPush.mockClear();
@@ -111,6 +118,30 @@ describe("SendPage", () => {
     await waitFor(() => screen.getByText("Cancel"));
     await userEvent.click(screen.getByText("Cancel"));
     expect(screen.queryByText("Confirm Transaction")).not.toBeInTheDocument();
+  });
+
+  it("shows gas estimate in ETH after valid inputs", async () => {
+    render(<SendPage />);
+    await userEvent.type(
+      screen.getByPlaceholderText("0x..."),
+      "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    );
+    await userEvent.type(screen.getByPlaceholderText("0.00"), "0.01");
+    await waitFor(() => {
+      expect(screen.getByText("0.00001000 ETH")).toBeInTheDocument();
+    });
+  });
+
+  it("shows gas estimate in USD after valid inputs", async () => {
+    render(<SendPage />);
+    await userEvent.type(
+      screen.getByPlaceholderText("0x..."),
+      "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    );
+    await userEvent.type(screen.getByPlaceholderText("0.00"), "0.01");
+    await waitFor(() => {
+      expect(screen.getByText("≈ $0.03")).toBeInTheDocument();
+    });
   });
 
   it("navigates back to dashboard on back button click", async () => {

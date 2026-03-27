@@ -64,13 +64,21 @@ export function useTransaction() {
     if (!wallet) return "0";
     try {
       const provider = getSigner("0x0000000000000000000000000000000000000000000000000000000000000001", network).provider!;
-      const gasEstimate = await provider.estimateGas({
-        from: wallet.address,
-        to,
-        value: ethers.parseEther(amount || "0"),
-      });
-      const feeData = await provider.getFeeData();
-      const gasCost = gasEstimate * (feeData.gasPrice ?? 0n);
+      const [gasUnits, feeData] = await Promise.all([
+        provider.estimateGas({
+          from: wallet.address,
+          to,
+          value: ethers.parseEther(amount || "0"),
+        }),
+        provider.getFeeData(),
+      ]);
+      // Use base + priority for expected cost; fall back to gasPrice for legacy networks
+      const baseFee = feeData.lastBaseFeePerGas ?? 0n;
+      const priorityFee = feeData.maxPriorityFeePerGas ?? 0n;
+      const effectivePrice = baseFee + priorityFee > 0n
+        ? baseFee + priorityFee
+        : (feeData.gasPrice ?? 0n);
+      const gasCost = gasUnits * effectivePrice;
       return ethers.formatEther(gasCost);
     } catch {
       return "0";
