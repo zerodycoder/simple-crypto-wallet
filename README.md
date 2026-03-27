@@ -93,7 +93,7 @@ npm run test:e2e
 npm run test:e2e:ui
 ```
 
-**122 unit/component tests** across lib, store, hooks, and pages.
+**135 unit/component tests** across lib, store, hooks, and pages.
 **38 E2E tests** covering full user flows with Playwright + Chromium.
 
 ---
