@@ -144,9 +144,9 @@ describe("SendPage", () => {
     });
   });
 
-  it("navigates back to dashboard on back button click", async () => {
+  it("navigates back to dashboard with refresh param on back button click", async () => {
     render(<SendPage />);
     await userEvent.click(screen.getByRole("button", { name: "" }));
-    expect(mockPush).toHaveBeenCalledWith("/dashboard");
+    expect(mockPush).toHaveBeenCalledWith("/dashboard?refresh=1");
   });
 });

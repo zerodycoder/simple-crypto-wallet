@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Send, Download, Copy, RefreshCw, Lock, Settings,
   ExternalLink, CheckCircle, Clock, XCircle, Wallet,
@@ -27,6 +27,7 @@ const ETHERSCAN_BASE: Record<string, string> = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { wallet, network, setWallet, lock } = useWalletStore();
   const { balance, isLoading: balanceLoading, refetch: refetchBalance } = useBalance(wallet?.address ?? null, network);
   const { transactions, isLoading: txLoading, refetch: refetchTx } = useTransactionHistory(wallet?.address ?? null, network);
@@ -48,6 +49,14 @@ export default function DashboardPage() {
       }
     }
   }, [wallet, router, setWallet]);
+
+  useEffect(() => {
+    if (searchParams.get("refresh") === "1") {
+      refetchTx();
+      router.replace("/dashboard");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!wallet) return null;
 
@@ -115,9 +124,11 @@ export default function DashboardPage() {
           {/* Balance */}
           <div className="flex flex-col gap-1">
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold tracking-tight">
-                {balanceLoading ? "..." : balance}
-              </span>
+              {balanceLoading ? (
+                <div className="w-32 h-10 rounded-lg bg-primary/10 animate-pulse" />
+              ) : (
+                <span className="text-4xl font-bold tracking-tight">{balance}</span>
+              )}
               <span className="text-muted-foreground text-lg mb-0.5">ETH</span>
               <button onClick={refetch} className="mb-1 ml-1 text-muted-foreground hover:text-foreground">
                 <RefreshCw className={`w-3.5 h-3.5 ${balanceLoading || txLoading ? "animate-spin" : ""}`} />
@@ -169,7 +180,25 @@ export default function DashboardPage() {
           Recent Transactions
         </h3>
 
-        {transactions.length === 0 ? (
+        {txLoading && transactions.length === 0 ? (
+          <div className="flex flex-col gap-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between px-4 py-3 rounded-xl bg-card border border-border animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-secondary" />
+                  <div className="flex flex-col gap-1.5">
+                    <div className="w-12 h-3 rounded bg-secondary" />
+                    <div className="w-20 h-2.5 rounded bg-secondary" />
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1.5">
+                  <div className="w-16 h-3 rounded bg-secondary" />
+                  <div className="w-10 h-2.5 rounded bg-secondary" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
             <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
               <Clock className="w-5 h-5" />
