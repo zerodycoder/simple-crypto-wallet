@@ -1,11 +1,19 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Wallet, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { loadWalletFromStorage } from "@/lib/crypto";
 
 export default function WelcomePage() {
   const router = useRouter();
+
+  useEffect(() => {
+    if (loadWalletFromStorage()) {
+      router.replace("/unlock");
+    }
+  }, [router]);
   return (
     <main className="flex flex-col min-h-screen items-center justify-center px-6">
       {/* Glow background */}
