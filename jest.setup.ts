@@ -6,3 +6,10 @@ Object.defineProperty(globalThis, "crypto", {
   value: webcrypto,
   writable: false,
 });
+
+// IntersectionObserver is not available in jsdom
+global.IntersectionObserver = class IntersectionObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as unknown as typeof IntersectionObserver;
