@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { useWalletStore } from "@/store/useWalletStore";
 import { useTransaction } from "@/hooks/useTransaction";
+import { useEthPrice } from "@/hooks/useEthPrice";
 import { shortenAddress } from "@/lib/wallet";
 import { ethers } from "ethers";
 
@@ -23,6 +24,7 @@ export default function SendPage() {
   const router = useRouter();
   const { wallet, network } = useWalletStore();
   const { sendTransaction, estimateGas, isLoading } = useTransaction();
+  const { toUsd } = useEthPrice();
 
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
@@ -132,9 +134,14 @@ export default function SendPage() {
         {/* Gas estimate */}
         {gasEstimate && (
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-secondary border border-border">
-            <Fuel className="w-4 h-4 text-muted-foreground" />
+            <Fuel className="w-4 h-4 text-muted-foreground shrink-0" />
             <span className="text-sm text-muted-foreground">Estimated gas:</span>
-            <span className="text-sm font-mono ml-auto">{parseFloat(gasEstimate).toFixed(8)} ETH</span>
+            <div className="ml-auto flex flex-col items-end">
+              <span className="text-sm font-mono">{parseFloat(gasEstimate).toFixed(8)} ETH</span>
+              {toUsd(gasEstimate) && (
+                <span className="text-xs text-muted-foreground">≈ {toUsd(gasEstimate)}</span>
+              )}
+            </div>
           </div>
         )}
 
@@ -172,7 +179,12 @@ export default function SendPage() {
             <div className="flex flex-col gap-2 p-4 rounded-xl bg-secondary border border-border">
               <Row label="To" value={shortenAddress(to)} mono />
               <Row label="Amount" value={`${amount} ETH`} />
-              {gasEstimate && <Row label="Gas (est.)" value={`${parseFloat(gasEstimate).toFixed(8)} ETH`} />}
+              {gasEstimate && (
+                <Row
+                  label="Gas (est.)"
+                  value={`${parseFloat(gasEstimate).toFixed(8)} ETH${toUsd(gasEstimate) ? `  ≈ ${toUsd(gasEstimate)}` : ""}`}
+                />
+              )}
               <Row label="Network" value={network === "sepolia" ? "Sepolia Testnet" : "Ethereum Mainnet"} />
             </div>
 
