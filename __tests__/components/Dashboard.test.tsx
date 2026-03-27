@@ -38,6 +38,9 @@ jest.mock("@/hooks/useBalance", () => ({
 jest.mock("@/hooks/useTransactionHistory", () => ({
   useTransactionHistory: () => ({
     refetch: mockRefetchTx,
+    loadMore: jest.fn(),
+    hasMore: false,
+    isLoadingMore: false,
     transactions: [
       {
         hash: "0xabc123",
@@ -58,7 +61,6 @@ jest.mock("@/hooks/useTransactionHistory", () => ({
     ],
     isLoading: false,
     error: null,
-    refetch: jest.fn(),
   }),
 }));
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Send, Download, Copy, RefreshCw, Lock, Settings,
@@ -30,9 +30,28 @@ export default function DashboardPage() {
   const searchParams = useSearchParams();
   const { wallet, network, setWallet, lock } = useWalletStore();
   const { balance, isLoading: balanceLoading, refetch: refetchBalance } = useBalance(wallet?.address ?? null, network);
-  const { transactions, isLoading: txLoading, refetch: refetchTx } = useTransactionHistory(wallet?.address ?? null, network);
+  const { transactions, isLoading: txLoading, isLoadingMore, hasMore, refetch: refetchTx, loadMore } = useTransactionHistory(wallet?.address ?? null, network);
   const { toUsd } = useEthPrice();
   useAutoLock();
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const handleIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0].isIntersecting && hasMore && !isLoadingMore && !txLoading) {
+        loadMore();
+      }
+    },
+    [hasMore, isLoadingMore, txLoading, loadMore]
+  );
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(handleIntersect, { threshold: 0.1 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [handleIntersect]);
 
   function refetch() {
     refetchBalance();
@@ -210,6 +229,13 @@ export default function DashboardPage() {
             {transactions.map((tx) => (
               <TransactionRow key={tx.hash} tx={tx} network={network} walletAddress={wallet.address} />
             ))}
+            {/* Sentinel — IntersectionObserver watches this to trigger loadMore */}
+            <div ref={sentinelRef} className="h-1" />
+            {isLoadingMore && (
+              <div className="flex justify-center py-3">
+                <RefreshCw className="w-4 h-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
           </div>
         )}
       </div>
