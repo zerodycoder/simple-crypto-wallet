@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,7 +103,9 @@ export default function ImportWalletPage() {
                 size="lg"
                 className="w-full h-12 rounded-xl font-semibold mt-2"
               >
-                {isLoading ? "Importing..." : "Import Wallet"}
+                {isLoading ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Importing...</>
+                ) : "Import Wallet"}
               </Button>
             </div>
           </TabsContent>
@@ -135,7 +137,9 @@ export default function ImportWalletPage() {
                 size="lg"
                 className="w-full h-12 rounded-xl font-semibold mt-2"
               >
-                {isLoading ? "Importing..." : "Import Wallet"}
+                {isLoading ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Importing...</>
+                ) : "Import Wallet"}
               </Button>
             </div>
           </TabsContent>

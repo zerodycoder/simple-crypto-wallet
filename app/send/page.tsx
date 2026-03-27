@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Eye, EyeOff, Fuel } from "lucide-react";
+import { ArrowLeft, Send, Eye, EyeOff, Fuel, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,7 +72,6 @@ export default function SendPage() {
   }
 
   async function handleConfirm() {
-    setShowConfirm(false);
     const result = await sendTransaction({ to, amount, password });
 
     if (result) {
@@ -82,6 +81,7 @@ export default function SendPage() {
     } else {
       toast.error("Transaction failed. Check your password and balance.");
     }
+    setShowConfirm(false);
     router.push("/dashboard?refresh=1");
   }
 
@@ -222,7 +222,11 @@ export default function SendPage() {
                 onClick={handleConfirm}
                 disabled={isLoading || !password}
               >
-                {isLoading ? "Sending..." : "Confirm & Send"}
+                {isLoading ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</>
+                ) : (
+                  <><Send className="w-4 h-4 mr-2" />Confirm & Send</>
+                )}
               </Button>
             </div>
           </div>
