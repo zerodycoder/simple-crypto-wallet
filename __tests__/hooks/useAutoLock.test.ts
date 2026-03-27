@@ -106,6 +106,26 @@ describe("useAutoLock", () => {
     addSpy.mockRestore();
   });
 
+  it("clears timer when wallet becomes locked mid-session", () => {
+    const { rerender } = renderHook(() => useAutoLock());
+
+    // Start unlocked, advance partway
+    act(() => {
+      jest.advanceTimersByTime(30 * 1000);
+    });
+
+    // Wallet becomes locked (e.g. another tab locked it)
+    mockUseWalletStore.mockReturnValue(buildStore({ isLocked: true, lockTimeout: 1 }));
+    rerender();
+
+    // Advance past original timeout — lock() should NOT be called again
+    act(() => {
+      jest.advanceTimersByTime(2 * 60 * 1000);
+    });
+
+    expect(mockLock).not.toHaveBeenCalled();
+  });
+
   it("removes event listeners on unmount", () => {
     const removeSpy = jest.spyOn(window, "removeEventListener");
     mockUseWalletStore.mockReturnValue(buildStore());

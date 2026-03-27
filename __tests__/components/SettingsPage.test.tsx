@@ -99,3 +99,18 @@ describe("SettingsPage", () => {
     expect(sepoliaBtn?.className).toContain("bg-primary");
   });
 });
+
+describe("SettingsPage — no wallet", () => {
+  it("redirects to / when wallet is null", () => {
+    jest.spyOn(require("@/store/useWalletStore"), "useWalletStore").mockReturnValue({
+      wallet: null,
+      settings: { lockTimeout: 5, defaultNetwork: "sepolia" },
+      updateSettings: jest.fn(),
+      clearWallet: jest.fn(),
+      setNetwork: jest.fn(),
+    });
+
+    render(<SettingsPage />);
+    expect(mockPush).toHaveBeenCalledWith("/");
+  });
+});
