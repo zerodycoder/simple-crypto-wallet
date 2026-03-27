@@ -79,10 +79,10 @@ export default function SendPage() {
       toast.success("Transaction sent!", {
         description: `Hash: ${result.hash.slice(0, 10)}...`,
       });
-      router.push("/dashboard");
     } else {
       toast.error("Transaction failed. Check your password and balance.");
     }
+    router.push("/dashboard?refresh=1");
   }
 
   if (!wallet) return null;
@@ -92,7 +92,7 @@ export default function SendPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push("/dashboard?refresh=1")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />

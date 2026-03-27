@@ -3,10 +3,15 @@ import userEvent from "@testing-library/user-event";
 import DashboardPage from "@/app/dashboard/page";
 
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 const mockLock = jest.fn();
+const mockRefetchTx = jest.fn();
+
+let mockSearchParams = new URLSearchParams();
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 jest.mock("@/store/useWalletStore", () => ({
@@ -32,6 +37,7 @@ jest.mock("@/hooks/useBalance", () => ({
 
 jest.mock("@/hooks/useTransactionHistory", () => ({
   useTransactionHistory: () => ({
+    refetch: mockRefetchTx,
     transactions: [
       {
         hash: "0xabc123",
@@ -78,7 +84,10 @@ jest.mock("@/components/wallet/NetworkSwitcher", () => ({
 describe("DashboardPage", () => {
   beforeEach(() => {
     mockPush.mockClear();
+    mockReplace.mockClear();
     mockLock.mockClear();
+    mockRefetchTx.mockClear();
+    mockSearchParams = new URLSearchParams();
   });
 
   it("renders the app name", () => {
@@ -153,11 +162,43 @@ describe("DashboardPage", () => {
     });
   });
 
+  it("replaces URL and triggers refetch when refresh=1 in URL", async () => {
+    mockSearchParams = new URLSearchParams("refresh=1");
+    render(<DashboardPage />);
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/dashboard");
+    });
+  });
+
+  it("does not replace URL when no refresh param", async () => {
+    render(<DashboardPage />);
+    await screen.findByText("SimpleCrypto");
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
   it("copies address to clipboard on address click", async () => {
     const writeText = jest.fn();
     Object.assign(navigator, { clipboard: { writeText } });
     render(<DashboardPage />);
     await userEvent.click(screen.getByText("0xf39F...2266"));
     expect(writeText).toHaveBeenCalledWith("0xf39Fd6e51aad88F6f4ce6aB8827279cffFb92266");
+  });
+});
+
+describe("DashboardPage — balance loading state", () => {
+  it("shows balance skeleton while balance is loading", () => {
+    // useBalance returns isLoading:true — tested via animate-pulse on the balance area
+    jest.spyOn(require("@/hooks/useBalance"), "useBalance").mockReturnValue({
+      balance: "0",
+      isLoading: true,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    const { container } = render(<DashboardPage />);
+    const skeleton = container.querySelector(".animate-pulse");
+    expect(skeleton).toBeInTheDocument();
+
+    jest.restoreAllMocks();
   });
 });
