@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Wallet, Eye, EyeOff, LogIn, Trash2 } from "lucide-react";
+import { Wallet, Eye, EyeOff, LogIn, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -115,8 +115,11 @@ export default function UnlockPage() {
             className="w-full rounded-xl h-12 font-semibold"
             disabled={!password || isLoading}
           >
-            <LogIn className="w-4 h-4 mr-2" />
-            {isLoading ? "Unlocking..." : "Unlock Wallet"}
+            {isLoading ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Unlocking...</>
+            ) : (
+              <><LogIn className="w-4 h-4 mr-2" />Unlock Wallet</>
+            )}
           </Button>
         </form>
 
