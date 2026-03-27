@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SimpleCrypto Wallet
 
-## Getting Started
+A non-custodial Ethereum wallet built with Next.js, TypeScript, and ethers.js v6. Supports Sepolia testnet and Ethereum mainnet. Built as a portfolio project to demonstrate full-stack Web3 development.
 
-First, run the development server:
+---
+
+## Features
+
+- **Create wallet** — generates a 12-word mnemonic with 3-word verification step
+- **Import wallet** — from seed phrase or raw private key
+- **Send ETH** — real-time gas estimation, password-gated transaction signing
+- **Receive** — QR code generation + one-click address copy
+- **Transaction history** — sent and received transactions via Alchemy, with Etherscan links
+- **ETH/USD price** — live price via CoinGecko, refreshed every 60 seconds
+- **Auto-lock** — locks wallet after configurable inactivity timeout (1–60 min)
+- **Settings** — change lock timeout, default network, or remove wallet from device
+- **Unlock page** — returning users enter password to decrypt and restore session
+- **Network switcher** — toggle between Sepolia testnet and Ethereum mainnet
+
+---
+
+## Security model
+
+- Private key never leaves the browser in plaintext
+- Keys are encrypted via ethers.js keystore v3 (AES-128-CTR + scrypt) and stored in `localStorage`
+- Password is required to decrypt the key before every transaction
+- The signed transaction hex is the only thing broadcast to the network
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Blockchain | ethers.js v6 |
+| State | Zustand (with persist middleware) |
+| Styling | Tailwind CSS v4 + shadcn/ui |
+| RPC | Alchemy JSON-RPC |
+| Price | CoinGecko API (via Next.js API route) |
+| Testing | Jest + React Testing Library + Playwright |
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 18+
+- An [Alchemy](https://alchemy.com) account (free tier is enough)
+
+### Setup
+
+```bash
+git clone https://github.com/zerodycoder/simple-crypto-wallet.git
+cd simple-crypto-wallet
+npm install
+```
+
+Create a `.env.local` file in the root:
+
+```env
+NEXT_PUBLIC_ALCHEMY_API_KEY=your_alchemy_api_key_here
+```
+
+Start the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Testing
 
-## Learn More
+```bash
+# Unit + component tests
+npm test
 
-To learn more about Next.js, take a look at the following resources:
+# Watch mode
+npm run test:watch
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Coverage report
+npm run test:coverage
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# E2E tests (requires dev server running)
+npm run test:e2e
 
-## Deploy on Vercel
+# E2E with interactive UI
+npm run test:e2e:ui
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**122 unit/component tests** across lib, store, hooks, and pages.
+**38 E2E tests** covering full user flows with Playwright + Chromium.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Project structure
+
+```
+├── app/
+│   ├── page.tsx           # Welcome / entry point
+│   ├── create/            # 3-step wallet creation flow
+│   ├── import/            # Import from mnemonic or private key
+│   ├── unlock/            # Password unlock for returning users
+│   ├── dashboard/         # Balance, history, actions
+│   ├── send/              # Send ETH form
+│   ├── receive/           # QR code + address
+│   ├── settings/          # Auto-lock, network, danger zone
+│   └── api/price/         # CoinGecko proxy (cached 60s)
+├── lib/
+│   ├── crypto.ts          # Encrypt/decrypt private key, localStorage helpers
+│   ├── wallet.ts          # Wallet creation, import, address formatting
+│   └── provider.ts        # Alchemy JsonRpcProvider factory
+├── hooks/
+│   ├── useBalance.ts      # ETH balance with 15s auto-refresh
+│   ├── useTransaction.ts  # Send tx, gas estimate, receipt polling
+│   ├── useTransactionHistory.ts  # Sent + received via alchemy_getAssetTransfers
+│   ├── useEthPrice.ts     # ETH/USD price polling
+│   └── useAutoLock.ts     # Inactivity timer, locks wallet on timeout
+├── store/
+│   └── useWalletStore.ts  # Zustand store (wallet, network, lock state, settings)
+├── types/
+│   └── wallet.ts          # Shared TypeScript interfaces
+├── components/
+│   └── wallet/            # NetworkSwitcher
+├── __tests__/             # Jest unit + component tests
+└── e2e/                   # Playwright E2E tests
+```
+
+---
+
+## License
+
+MIT
