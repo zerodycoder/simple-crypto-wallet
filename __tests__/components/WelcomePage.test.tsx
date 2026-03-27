@@ -3,13 +3,19 @@ import userEvent from "@testing-library/user-event";
 import WelcomePage from "@/app/page";
 
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
+}));
+
+jest.mock("@/lib/crypto", () => ({
+  loadWalletFromStorage: jest.fn().mockReturnValue(null),
 }));
 
 describe("WelcomePage", () => {
   beforeEach(() => {
     mockPush.mockClear();
+    mockReplace.mockClear();
   });
 
   it("renders the app name", () => {
@@ -49,5 +55,22 @@ describe("WelcomePage", () => {
   it("renders the disclaimer text", () => {
     render(<WelcomePage />);
     expect(screen.getByText(/solely responsible/i)).toBeInTheDocument();
+  });
+
+  it("redirects to /unlock when a stored wallet exists", async () => {
+    const { loadWalletFromStorage } = require("@/lib/crypto");
+    (loadWalletFromStorage as jest.Mock).mockReturnValueOnce({
+      address: "0xf39Fd6e51aad88F6f4ce6aB8827279cffFb92266",
+      encryptedKey: '{"version":3}',
+    });
+    render(<WelcomePage />);
+    await screen.findByText("SimpleCrypto");
+    expect(mockReplace).toHaveBeenCalledWith("/unlock");
+  });
+
+  it("does not redirect when no wallet in storage", async () => {
+    render(<WelcomePage />);
+    await screen.findByText("SimpleCrypto");
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 });
